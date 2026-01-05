@@ -1,0 +1,687 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SecureShare - Download Encrypted File</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        :root {
+            --primary: #6366f1;
+            --success: #10b981;
+            --error: #ef4444;
+            --warning: #f59e0b;
+            --dark: #1e293b;
+            --gray: #64748b;
+            --gray-light: #f1f5f9;
+            --white: #ffffff;
+            --gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            --shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: var(--gradient);
+            min-height: 100vh;
+            color: var(--dark);
+        }
+
+        .background-animation {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            background: var(--gradient);
+        }
+
+        .background-animation::before {
+            content: '';
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><pattern id="grid" width="10" height="10" patternUnits="userSpaceOnUse"><path d="M 10 0 L 0 0 0 10" fill="none" stroke="rgba(255,255,255,0.1)" stroke-width="0.5"/></pattern></defs><rect width="100" height="100" fill="url(%23grid)"/></svg>');
+            animation: float 20s ease-in-out infinite;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-20px); }
+        }
+
+        .container { max-width: 900px; margin: 0 auto; padding: 2rem; }
+
+        .header {
+            text-align: center;
+            color: white;
+            margin-bottom: 2rem;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .logo-icon {
+            width: 50px;
+            height: 50px;
+            background: rgba(255, 255, 255, 0.2);
+            backdrop-filter: blur(10px);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
+
+        .logo h1 {
+            font-size: 2.5rem;
+            font-weight: 800;
+            background: linear-gradient(45deg, #fff, #e2e8f0);
+            background-clip: text;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .card {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(20px);
+            border-radius: 24px;
+            padding: 2rem;
+            box-shadow: var(--shadow);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            position: relative;
+            animation: fadeIn 0.6s ease-out;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: var(--gradient);
+            border-radius: 24px 24px 0 0;
+        }
+
+        .card-header {
+            text-align: center;
+            margin-bottom: 2rem;
+            padding-top: 1rem;
+        }
+
+        .card-icon {
+            font-size: 3rem;
+            color: var(--primary);
+            margin-bottom: 1rem;
+            animation: bounce 2s infinite;
+        }
+
+        @keyframes bounce {
+            0%, 20%, 50%, 80%, 100% { transform: translateY(0); }
+            40% { transform: translateY(-10px); }
+            60% { transform: translateY(-5px); }
+        }
+
+        .file-info {
+            background: var(--gray-light);
+            padding: 1.5rem;
+            border-radius: 12px;
+            margin-bottom: 1.5rem;
+        }
+
+        .file-info-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 0.75rem 0;
+            border-bottom: 1px solid #e2e8f0;
+        }
+
+        .file-info-item:last-child { border-bottom: none; }
+
+        .badge {
+            padding: 0.25rem 0.75rem;
+            border-radius: 12px;
+            font-size: 0.85rem;
+            font-weight: 600;
+        }
+
+        .badge-success {
+            background: rgba(16, 185, 129, 0.1);
+            color: var(--success);
+        }
+
+        .badge-warning {
+            background: rgba(245, 158, 11, 0.1);
+            color: var(--warning);
+        }
+
+        .form-group { margin-bottom: 1.5rem; }
+
+        .form-label {
+            display: block;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            color: var(--dark);
+        }
+
+        .form-input {
+            width: 100%;
+            padding: 0.75rem;
+            border: 2px solid #e2e8f0;
+            border-radius: 8px;
+            font-family: inherit;
+            transition: all 0.3s ease;
+        }
+
+        .form-input:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+        }
+
+        textarea.form-input {
+            min-height: 120px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.85rem;
+        }
+
+        .btn {
+            padding: 1rem 2rem;
+            border: none;
+            border-radius: 12px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            width: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            transition: all 0.3s ease;
+            font-family: inherit;
+        }
+
+        .btn-primary {
+            background: var(--gradient);
+            color: white;
+            box-shadow: 0 4px 15px rgba(99, 102, 241, 0.4);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(99, 102, 241, 0.6);
+        }
+
+        .alert {
+            padding: 1rem;
+            border-radius: 8px;
+            margin-bottom: 1rem;
+            display: none;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .alert-error {
+            background: rgba(239, 68, 68, 0.1);
+            border: 2px solid var(--error);
+            color: var(--error);
+        }
+
+        .alert-success {
+            background: rgba(16, 185, 129, 0.1);
+            border: 2px solid var(--success);
+            color: var(--success);
+        }
+
+        .spinner {
+            border: 3px solid #e2e8f0;
+            border-top: 3px solid var(--primary);
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 1rem;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .hidden { display: none !important; }
+
+        .mode-toggle {
+            text-align: center;
+            margin-bottom: 1rem;
+        }
+
+        .mode-toggle button {
+            background: none;
+            border: none;
+            color: var(--primary);
+            cursor: pointer;
+            text-decoration: underline;
+            font-size: 0.9rem;
+        }
+
+        .qr-section {
+            text-align: center;
+            padding: 2rem;
+            background: white;
+            border-radius: 12px;
+            margin-bottom: 2rem;
+            border: 2px solid var(--gray-light);
+        }
+
+        .qr-section img {
+            max-width: 250px;
+            margin: 1rem auto;
+            display: block;
+        }
+
+        @media (max-width: 768px) {
+            .container { padding: 1rem; }
+            .card { padding: 1.5rem; }
+            .logo h1 { font-size: 2rem; }
+        }
+    </style>
+</head>
+<body>
+    <div class="background-animation"></div>
+    
+    <div class="container">
+        <div class="header">
+            <div class="logo">
+                <div class="logo-icon">
+                    <i class="fas fa-shield-alt"></i>
+                </div>
+                <h1>SecureShare</h1>
+            </div>
+            <p>Secure File Download</p>
+        </div>
+
+        <div class="card">
+            <div class="card-header">
+                <i class="fas fa-cloud-download-alt card-icon"></i>
+                <h2>Download Your File</h2>
+            </div>
+
+            <div class="alert alert-error" id="errorAlert">
+                <i class="fas fa-exclamation-triangle"></i>
+                <span id="errorMessage"></span>
+            </div>
+
+            <div class="alert alert-success hidden" id="successAlert">
+                <i class="fas fa-check-circle"></i>
+                File downloaded successfully!
+            </div>
+
+            <div id="fileInfo" class="file-info hidden">
+                <div class="file-info-item">
+                    <strong><i class="fas fa-file"></i> Filename:</strong>
+                    <span id="filename"></span>
+                </div>
+                <div class="file-info-item">
+                    <strong><i class="fas fa-lock"></i> Encryption:</strong>
+                    <span id="encryptionType"></span>
+                </div>
+                <div class="file-info-item">
+                    <strong><i class="fas fa-download"></i> Downloads Left:</strong>
+                    <span id="downloadsRemaining" class="badge badge-success"></span>
+                </div>
+                <div class="file-info-item">
+                    <strong><i class="fas fa-clock"></i> Expires:</strong>
+                    <span id="expiryTime"></span>
+                </div>
+                <div class="file-info-item">
+                    <strong><i class="fas fa-shield-virus"></i> Virus Scan:</strong>
+                    <span id="virusScanStatus"></span>
+                </div>
+                <div class="file-info-item" id="fileSizeItem">
+                    <strong><i class="fas fa-hdd"></i> Size:</strong>
+                    <span id="fileSize"></span>
+                </div>
+            </div>
+
+            <div id="qrSection" class="qr-section hidden">
+                <h4><i class="fas fa-qrcode"></i> Share This Download</h4>
+                <p style="color: var(--gray); font-size: 0.9rem;">Scan to share this link</p>
+                <img id="qrCodeImage" src="" alt="QR Code">
+            </div>
+
+            <div id="downloadForm">
+                <div id="passwordMode">
+                    <div class="form-group">
+                        <label class="form-label" for="passwordInput">
+                            <i class="fas fa-lock"></i> Password
+                        </label>
+                        <input 
+                            type="text" 
+                            class="form-input" 
+                            id="passwordInput" 
+                            placeholder="Enter password to decrypt file"
+                            autocomplete="off"
+                        >
+                    </div>
+                </div>
+
+                <div id="rsaMode" class="hidden">
+                    <div class="form-group">
+                        <label class="form-label" for="rsaPrivateKey">
+                            <i class="fas fa-key"></i> RSA Private Key (Base64)
+                        </label>
+                        <textarea 
+                            class="form-input" 
+                            id="rsaPrivateKey" 
+                            placeholder="Paste your RSA private key here"
+                        ></textarea>
+                    </div>
+                </div>
+
+                <div class="mode-toggle hidden" id="modeToggle">
+                    <button onclick="toggleMode()">
+                        <span id="toggleText">Use RSA Private Key instead</span>
+                    </button>
+                </div>
+
+                <button class="btn btn-primary" id="downloadBtn" onclick="downloadFile()">
+                    <i class="fas fa-download"></i>
+                    Download & Decrypt
+                </button>
+            </div>
+
+            <div id="progressContainer" class="hidden">
+                <div class="spinner"></div>
+                <div style="text-align: center; color: var(--gray);" id="progressText">Preparing download...</div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const fileId = '{{ file_id }}';
+        let fileInfo = null;
+        let currentMode = 'password';
+
+        window.addEventListener('DOMContentLoaded', async () => {
+            await loadFileInfo();
+            await loadQRCode();
+            
+            if (window.location.hash) {
+                const password = decodeURIComponent(window.location.hash.substring(1));
+                document.getElementById('passwordInput').value = password;
+                history.replaceState(null, null, window.location.pathname);
+            }
+        });
+
+        async function loadFileInfo() {
+            try {
+                const response = await fetch(`/api/file/${fileId}/info`);
+                const data = await response.json();
+
+                if (data.success) {
+                    fileInfo = data;
+                    displayFileInfo(data);
+                } else {
+                    showError(data.error || 'File not found');
+                }
+            } catch (error) {
+                showError('Failed to load file information');
+            }
+        }
+
+        async function loadQRCode() {
+            try {
+                const response = await fetch(`/api/file/${fileId}/qr`);
+                const data = await response.json();
+                
+                if (data.success) {
+                    document.getElementById('qrSection').classList.remove('hidden');
+                    document.getElementById('qrCodeImage').src = data.qr_code;
+                }
+            } catch (error) {
+                console.log('QR code not available');
+            }
+        }
+
+        function displayFileInfo(info) {
+            document.getElementById('fileInfo').classList.remove('hidden');
+            document.getElementById('filename').textContent = info.filename;
+            document.getElementById('encryptionType').textContent = info.uses_rsa ? 'RSA + AES-256' : 'AES-256 (Password)';
+            document.getElementById('downloadsRemaining').textContent = info.downloads_remaining;
+            
+            const expiry = new Date(info.expiry_time);
+            document.getElementById('expiryTime').textContent = expiry.toLocaleString();
+
+            const scanStatus = info.virus_scan_status || 'unknown';
+            const scanBadge = document.getElementById('virusScanStatus');
+            if (scanStatus === 'Clean' || scanStatus === 'clean') {
+                scanBadge.innerHTML = '<span class="badge badge-success"><i class="fas fa-check"></i> Clean</span>';
+            } else {
+                scanBadge.innerHTML = '<span class="badge badge-warning">' + scanStatus + '</span>';
+            }
+
+            if (info.file_size) {
+                document.getElementById('fileSize').textContent = formatFileSize(info.file_size);
+            }
+
+            if (info.uses_rsa) {
+                document.getElementById('modeToggle').classList.remove('hidden');
+                currentMode = 'rsa';
+                showRsaMode();
+            }
+        }
+
+        function formatFileSize(bytes) {
+            const k = 1024;
+            const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+            const i = Math.floor(Math.log(bytes) / Math.log(k));
+            return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+        }
+
+        function toggleMode() {
+            if (currentMode === 'password') {
+                currentMode = 'rsa';
+                showRsaMode();
+            } else {
+                currentMode = 'password';
+                showPasswordMode();
+            }
+        }
+
+        function showRsaMode() {
+            document.getElementById('passwordMode').classList.add('hidden');
+            document.getElementById('rsaMode').classList.remove('hidden');
+            document.getElementById('toggleText').textContent = 'Use password instead';
+        }
+
+        function showPasswordMode() {
+            document.getElementById('rsaMode').classList.add('hidden');
+            document.getElementById('passwordMode').classList.remove('hidden');
+            document.getElementById('toggleText').textContent = 'Use RSA Private Key instead';
+        }
+
+        async function downloadFile() {
+            const password = document.getElementById('passwordInput').value.trim();
+            const rsaPrivateKeyBase64 = document.getElementById('rsaPrivateKey').value.trim();
+
+            if (currentMode === 'password' && !password) {
+                showError('Please enter a password');
+                return;
+            }
+
+            if (currentMode === 'rsa' && !rsaPrivateKeyBase64) {
+                showError('Please enter your RSA private key');
+                return;
+            }
+
+            showProgress('Downloading encrypted file...');
+
+            try {
+                const response = await fetch(`/api/file/${fileId}`);
+                const result = await response.json();
+
+                if (!response.ok || !result.success) {
+                    throw new Error(result.error || 'Download failed');
+                }
+
+                showProgress('Decrypting file...');
+
+                const encrypted = hexToArrayBuffer(result.encrypted);
+                const salt = base64ToArray(result.salt);
+                const iv = base64ToArray(result.iv);
+
+                let aesKey;
+
+                if (result.rsa_public_key && currentMode === 'rsa') {
+                    try {
+                        const privateKeyBytes = base64ToArray(rsaPrivateKeyBase64);
+                        const rsaPrivateKey = await crypto.subtle.importKey(
+                            'pkcs8',
+                            privateKeyBytes.buffer,
+                            { name: 'RSA-OAEP', hash: 'SHA-256' },
+                            true,
+                            ['decrypt']
+                        );
+
+                        const encryptedAesKey = base64ToArray(result.encrypted_aes_key);
+                        const decryptedAesKey = await crypto.subtle.decrypt(
+                            { name: 'RSA-OAEP' },
+                            rsaPrivateKey,
+                            encryptedAesKey.buffer
+                        );
+
+                        aesKey = await crypto.subtle.importKey(
+                            'raw',
+                            decryptedAesKey,
+                            'AES-GCM',
+                            true,
+                            ['decrypt']
+                        );
+                    } catch (error) {
+                        throw new Error('Invalid RSA private key');
+                    }
+                } else {
+                    if (!password) {
+                        throw new Error('Password required');
+                    }
+
+                    const encoder = new TextEncoder();
+                    const passwordKey = await crypto.subtle.importKey(
+                        'raw',
+                        encoder.encode(password),
+                        'PBKDF2',
+                        false,
+                        ['deriveKey']
+                    );
+
+                    aesKey = await crypto.subtle.deriveKey(
+                        {
+                            name: 'PBKDF2',
+                            salt: salt,
+                            iterations: 100000,
+                            hash: 'SHA-256'
+                        },
+                        passwordKey,
+                        { name: 'AES-GCM', length: 256 },
+                        true,
+                        ['decrypt']
+                    );
+                }
+
+                const decrypted = await crypto.subtle.decrypt(
+                    { name: 'AES-GCM', iv: iv },
+                    aesKey,
+                    encrypted
+                );
+
+                showProgress('Preparing download...');
+
+                const blob = new Blob([decrypted]);
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = result.filename.replace(/\.enc$/, '');
+                a.click();
+                URL.revokeObjectURL(url);
+
+                hideProgress();
+                showSuccess();
+
+            } catch (error) {
+                hideProgress();
+                showError(error.message || 'Download failed');
+                console.error('Download error:', error);
+            }
+        }
+
+        function showProgress(text) {
+            document.getElementById('downloadForm').classList.add('hidden');
+            document.getElementById('progressContainer').classList.remove('hidden');
+            document.getElementById('progressText').textContent = text;
+        }
+
+        function hideProgress() {
+            document.getElementById('progressContainer').classList.add('hidden');
+            document.getElementById('downloadForm').classList.remove('hidden');
+        }
+
+        function showSuccess() {
+            document.getElementById('successAlert').classList.remove('hidden');
+            setTimeout(() => {
+                document.getElementById('successAlert').classList.add('hidden');
+            }, 5000);
+        }
+
+        function showError(message) {
+            document.getElementById('errorMessage').textContent = message;
+            document.getElementById('errorAlert').style.display = 'flex';
+            setTimeout(() => {
+                document.getElementById('errorAlert').style.display = 'none';
+            }, 8000);
+        }
+
+        function hexToArrayBuffer(hex) {
+            const bytes = new Uint8Array(hex.length / 2);
+            for (let i = 0; i < hex.length; i += 2) {
+                bytes[i / 2] = parseInt(hex.substr(i, 2), 16);
+            }
+            return bytes.buffer;
+        }
+
+        function base64ToArray(base64) {
+            if (!base64) return new Uint8Array();
+            const binary = atob(base64);
+            const array = new Uint8Array(binary.length);
+            for (let i = 0; i < binary.length; i++) {
+                array[i] = binary.charCodeAt(i);
+            }
+            return array;
+        }
+
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter' && !document.getElementById('downloadForm').classList.contains('hidden')) {
+                downloadFile();
+            }
+        });
+    </script>
+</body>
+</html>
