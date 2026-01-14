@@ -1,0 +1,41 @@
+/* SALT SIEM - Dark Theme */
+
+:root[data-theme="dark"] {
+    --bg-main: #0d1117;
+    --bg-side: #161b22;
+    --bg-card: #21262d;
+    --bg-hover: #30363d;
+    --text-main: #c9d1d9;
+    --text-dim: #8b949e;
+    --accent: #58a6ff;
+    --border: #30363d;
+    --danger: #f85149;
+    --warning: #d29922;
+    --success: #3fb950;
+    --shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+}
+
+/* Dark theme specific overrides */
+:root[data-theme="dark"] .stat-value {
+    text-shadow: 0 0 20px rgba(88, 166, 255, 0.3);
+}
+
+:root[data-theme="dark"] .feed-item {
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+}
+
+:root[data-theme="dark"] .card {
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+}
+
+:root[data-theme="dark"] .btn-primary {
+    box-shadow: 0 0 15px rgba(88, 166, 255, 0.2);
+}
+
+:root[data-theme="dark"] .status-indicator {
+    box-shadow: 0 0 8px var(--success);
+}
+
+:root[data-theme="dark"] .upload-area:hover {
+    box-shadow: 0 0 0 1px var(--accent) inset;
+}

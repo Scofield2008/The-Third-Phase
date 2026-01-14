@@ -1,0 +1,750 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SALT SIEM - Security Operations Center</title>
+    
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <script src="https://cdn.socket.io/4.5.4/socket.io.min.js"></script>
+    
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root[data-theme="dark"] {
+            --bg-main: #0d1117;
+            --bg-side: #161b22;
+            --bg-card: #21262d;
+            --bg-hover: #30363d;
+            --text-main: #c9d1d9;
+            --text-dim: #8b949e;
+            --accent: #58a6ff;
+            --border: #30363d;
+            --danger: #f85149;
+            --warning: #d29922;
+            --success: #3fb950;
+        }
+
+        :root[data-theme="light"] {
+            --bg-main: #ffffff;
+            --bg-side: #f6f8fa;
+            --bg-card: #ffffff;
+            --bg-hover: #f6f8fa;
+            --text-main: #24292f;
+            --text-dim: #57606a;
+            --accent: #0969da;
+            --border: #d0d7de;
+            --danger: #cf222e;
+            --warning: #9a6700;
+            --success: #1a7f37;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
+            background: var(--bg-main);
+            color: var(--text-main);
+            font-size: 14px;
+            line-height: 1.5;
+        }
+
+        .sidebar {
+            position: fixed;
+            left: 0;
+            top: 0;
+            width: 260px;
+            height: 100vh;
+            background: var(--bg-side);
+            border-right: 1px solid var(--border);
+            display: flex;
+            flex-direction: column;
+        }
+
+        .sidebar-header {
+            padding: 16px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .brand {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .brand-name {
+            font-size: 16px;
+            font-weight: 600;
+            color: var(--text-main);
+        }
+
+        .brand-version {
+            font-size: 11px;
+            color: var(--text-dim);
+            margin-left: 8px;
+        }
+
+        .theme-btn {
+            width: 32px;
+            height: 32px;
+            border: 1px solid var(--border);
+            background: var(--bg-card);
+            border-radius: 6px;
+            cursor: pointer;
+            color: var(--text-dim);
+            font-size: 14px;
+        }
+
+        .theme-btn:hover {
+            background: var(--bg-hover);
+            border-color: var(--accent);
+        }
+
+        .nav {
+            flex: 1;
+            padding: 8px;
+            overflow-y: auto;
+        }
+
+        .nav-item {
+            display: flex;
+            align-items: center;
+            padding: 8px 12px;
+            margin-bottom: 2px;
+            border-radius: 6px;
+            cursor: pointer;
+            color: var(--text-dim);
+            font-size: 14px;
+            transition: all 0.15s;
+        }
+
+        .nav-item:hover {
+            background: var(--bg-hover);
+            color: var(--text-main);
+        }
+
+        .nav-item.active {
+            background: var(--accent);
+            color: #fff;
+        }
+
+        .nav-item svg {
+            width: 16px;
+            height: 16px;
+            margin-right: 12px;
+        }
+
+        .sidebar-footer {
+            padding: 12px 16px;
+            border-top: 1px solid var(--border);
+            font-size: 12px;
+            color: var(--text-dim);
+        }
+
+        .status-indicator {
+            display: inline-block;
+            width: 8px;
+            height: 8px;
+            background: var(--success);
+            border-radius: 50%;
+            margin-right: 6px;
+        }
+
+        .main {
+            margin-left: 260px;
+            padding: 24px;
+            min-height: 100vh;
+        }
+
+        .page {
+            display: none;
+        }
+
+        .page.active {
+            display: block;
+        }
+
+        .page-header {
+            margin-bottom: 24px;
+        }
+
+        .page-title {
+            font-size: 24px;
+            font-weight: 600;
+            margin-bottom: 4px;
+        }
+
+        .page-subtitle {
+            color: var(--text-dim);
+            font-size: 14px;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+
+        .stat-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            padding: 16px;
+        }
+
+        .stat-label {
+            font-size: 12px;
+            color: var(--text-dim);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 8px;
+        }
+
+        .stat-value {
+            font-size: 32px;
+            font-weight: 600;
+            color: var(--text-main);
+            margin-bottom: 4px;
+        }
+
+        .stat-caption {
+            font-size: 12px;
+            color: var(--text-dim);
+        }
+
+        .layout-2col {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 16px;
+            margin-bottom: 16px;
+        }
+
+        .layout-2col-even {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+        }
+
+        .card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            padding: 16px;
+        }
+
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 16px;
+            padding-bottom: 12px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .card-title {
+            font-size: 14px;
+            font-weight: 600;
+        }
+
+        .activity-feed {
+            max-height: 450px;
+            overflow-y: auto;
+        }
+
+        .feed-item {
+            padding: 10px;
+            margin-bottom: 8px;
+            border-left: 2px solid;
+            background: var(--bg-hover);
+            border-radius: 4px;
+            font-size: 13px;
+        }
+
+        .feed-item.critical { border-left-color: var(--danger); }
+        .feed-item.high { border-left-color: var(--warning); }
+        .feed-item.medium { border-left-color: var(--accent); }
+        .feed-item.low { border-left-color: var(--success); }
+
+        .feed-time {
+            font-size: 11px;
+            color: var(--text-dim);
+            margin-bottom: 4px;
+        }
+
+        .feed-message {
+            color: var(--text-main);
+        }
+
+        .gauge-container {
+            text-align: center;
+            padding: 20px;
+        }
+
+        .gauge-canvas {
+            max-width: 180px;
+            margin: 0 auto;
+        }
+
+        .gauge-value {
+            font-size: 28px;
+            font-weight: 600;
+            margin-top: 12px;
+        }
+
+        .gauge-label {
+            font-size: 12px;
+            color: var(--text-dim);
+            margin-top: 4px;
+        }
+
+        .upload-area {
+            border: 2px dashed var(--border);
+            border-radius: 6px;
+            padding: 48px 32px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .upload-area:hover {
+            border-color: var(--accent);
+            background: var(--bg-hover);
+        }
+
+        .upload-area.dragover {
+            border-color: var(--accent);
+            background: var(--bg-hover);
+        }
+
+        .upload-title {
+            font-size: 16px;
+            font-weight: 500;
+            margin-bottom: 8px;
+        }
+
+        .upload-hint {
+            font-size: 13px;
+            color: var(--text-dim);
+        }
+
+        .file-queue {
+            margin-top: 16px;
+        }
+
+        .file-item {
+            display: flex;
+            align-items: center;
+            padding: 10px;
+            background: var(--bg-hover);
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            margin-bottom: 8px;
+        }
+
+        .file-info {
+            flex: 1;
+            margin-left: 12px;
+        }
+
+        .file-name {
+            font-size: 13px;
+            font-weight: 500;
+        }
+
+        .file-size {
+            font-size: 12px;
+            color: var(--text-dim);
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 3px;
+            background: var(--bg-main);
+            border-radius: 2px;
+            overflow: hidden;
+            margin-top: 6px;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: var(--accent);
+            transition: width 0.3s;
+        }
+
+        .btn {
+            padding: 6px 16px;
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            background: var(--bg-card);
+            color: var(--text-main);
+            font-size: 13px;
+            cursor: pointer;
+            transition: all 0.15s;
+        }
+
+        .btn:hover {
+            background: var(--bg-hover);
+            border-color: var(--accent);
+        }
+
+        .btn-primary {
+            background: var(--accent);
+            color: #fff;
+            border-color: var(--accent);
+        }
+
+        .btn-primary:hover {
+            background: #4a8fd4;
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-size: 11px;
+            font-weight: 500;
+        }
+
+        .badge-critical {
+            background: rgba(248, 81, 73, 0.15);
+            color: var(--danger);
+        }
+
+        .badge-high {
+            background: rgba(210, 153, 34, 0.15);
+            color: var(--warning);
+        }
+
+        .badge-medium {
+            background: rgba(88, 166, 255, 0.15);
+            color: var(--accent);
+        }
+
+        .badge-low {
+            background: rgba(63, 185, 80, 0.15);
+            color: var(--success);
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th {
+            text-align: left;
+            padding: 8px 12px;
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--text-dim);
+            border-bottom: 1px solid var(--border);
+        }
+
+        td {
+            padding: 10px 12px;
+            border-bottom: 1px solid var(--border);
+            font-size: 13px;
+        }
+
+        tr:hover {
+            background: var(--bg-hover);
+        }
+
+        .chart-wrapper {
+            position: relative;
+            height: 280px;
+        }
+
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: var(--bg-main);
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: var(--border);
+            border-radius: 4px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: var(--text-dim);
+        }
+
+        @media (max-width: 768px) {
+            .sidebar {
+                transform: translateX(-100%);
+            }
+            .main {
+                margin-left: 0;
+            }
+            .layout-2col,
+            .layout-2col-even {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="sidebar">
+        <div class="sidebar-header">
+            <div class="brand">
+                <div>
+                    <span class="brand-name">SALT SIEM</span>
+                    <span class="brand-version">v3.0</span>
+                </div>
+                <button class="theme-btn" onclick="toggleTheme()" id="theme-btn">
+                    <span id="theme-icon">◐</span>
+                </button>
+            </div>
+        </div>
+        <div class="nav">
+            <div class="nav-item active" onclick="switchPage('dashboard')">
+                <svg fill="currentColor" viewBox="0 0 16 16"><path d="M0 1.75A.75.75 0 0 1 .75 1h4.5c.41 0 .75.34.75.75v3.5a.75.75 0 0 1-.75.75h-4.5a.75.75 0 0 1-.75-.75v-3.5zm0 8.5a.75.75 0 0 1 .75-.75h4.5a.75.75 0 0 1 .75.75v3.5a.75.75 0 0 1-.75.75h-4.5a.75.75 0 0 1-.75-.75v-3.5zM7.75 1a.75.75 0 0 1 .75.75v3.5a.75.75 0 0 1-.75.75h-4.5a.75.75 0 0 1-.75-.75v-3.5A.75.75 0 0 1 3.25 1h4.5zm0 8.5a.75.75 0 0 1 .75-.75h4.5a.75.75 0 0 1 .75.75v3.5a.75.75 0 0 1-.75.75h-4.5a.75.75 0 0 1-.75-.75v-3.5z"/></svg>
+                Dashboard
+            </div>
+            <div class="nav-item" onclick="switchPage('logs')">
+                <svg fill="currentColor" viewBox="0 0 16 16"><path d="M0 1.75A.75.75 0 0 1 .75 1h14.5a.75.75 0 0 1 .75.75v8.5a.75.75 0 0 1-.75.75H.75a.75.75 0 0 1-.75-.75v-8.5zm1.5 1.5v7h13v-7h-13zm0-1h13v1h-13v-1z"/></svg>
+                Logs
+            </div>
+            <div class="nav-item" onclick="switchPage('alerts')">
+                <svg fill="currentColor" viewBox="0 0 16 16"><path d="M8 16a2 2 0 0 0 2-2H6a2 2 0 0 0 2 2zm.995-14.901a1 1 0 1 0-1.99 0A5.002 5.002 0 0 0 3 6c0 1.098-.5 6-2 7h14c-1.5-1-2-5.902-2-7 0-2.42-1.72-4.44-4.005-4.901z"/></svg>
+                Alerts
+            </div>
+            <div class="nav-item" onclick="switchPage('incidents')">
+                <svg fill="currentColor" viewBox="0 0 16 16"><path d="M1.5 2A1.5 1.5 0 0 0 0 3.5v.318c.6.224 1.263.75 1.98 1.5A.5.5 0 0 1 2 5.5v.5h-.5a.5.5 0 0 1-.5-.5V3.5a.5.5 0 0 1 .5-.5h1v-1zM14 1.5a.5.5 0 0 1 .5.5v1.5a.5.5 0 0 1-.5.5H13v-.5a.5.5 0 0 1 .5-.5h.318c.224-.6.75-1.263 1.5-1.98A.5.5 0 0 1 15.5 2h.5v1.5a.5.5 0 0 1-.5.5h-2a.5.5 0 0 1-.5-.5v-.5zM8 0a8 8 0 1 0 0 16 8 8 0 0 0 0-16zm0 1.5a6.5 6.5 0 1 1 0 13 6.5 6.5 0 0 1 0-13z"/></svg>
+                Incidents
+            </div>
+            <div class="nav-item" onclick="switchPage('scanner')">
+                <svg fill="currentColor" viewBox="0 0 16 16"><path d="M1.75 2A1.75 1.75 0 0 0 0 3.75v.736a.75.75 0 0 0 0 .027v7.737C0 13.216.784 14 1.75 14h12.5A1.75 1.75 0 0 0 16 12.25v-8.5A1.75 1.75 0 0 0 14.25 2h-12.5zm5 12a.25.25 0 0 1-.25-.25v-.5h5v.5a.25.25 0 0 1-.25.25h-4.5zM2 4.997V3.75a.25.25 0 0 1 .25-.25h12.5a.25.25 0 0 1 .25.25v1.247l-1.247.002L2 4.997zM14.5 6.5v5.75a.25.25 0 0 1-.25.25h-12.5a.25.25 0 0 1-.25-.25V6.5h13z"/></svg>
+                Scanner
+            </div>
+            <div class="nav-item" onclick="switchPage('analytics')">
+                <svg fill="currentColor" viewBox="0 0 16 16"><path d="M0 1.75A.75.75 0 0 1 .75 1h3.5a.75.75 0 0 1 0 1.5H3.5v1h.75a.75.75 0 0 1 0 1.5H.75a.75.75 0 0 1-.75-.75V1.75zM0 6.75A.75.75 0 0 1 .75 6h3.5a.75.75 0 0 1 0 1.5H3.5v1h.75a.75.75 0 0 1 0 1.5H.75a.75.75 0 0 1-.75-.75v-3zM0 11.75A.75.75 0 0 1 .75 11h3.5a.75.75 0 0 1 0 1.5H3.5v1h.75a.75.75 0 0 1 0 1.5H.75a.75.75 0 0 1-.75-.75v-3zM6.25 1a.75.75 0 0 1 .75.75v3.5a.75.75 0 0 1-1.5 0V2.5h-1v.75a.75.75 0 0 1-1.5 0V1.75A.75.75 0 0 1 5.5 1h.75zM6.25 6a.75.75 0 0 1 .75.75v3.5a.75.75 0 0 1-1.5 0V7.5h-1v.75a.75.75 0 0 1-1.5 0V6.75A.75.75 0 0 1 5.5 6h.75zM6.25 11a.75.75 0 0 1 .75.75v3.5a.75.75 0 0 1-1.5 0v-2.5h-1v.75a.75.75 0 0 1-1.5 0v-.75A.75.75 0 0 1 5.5 11h.75zM11.75 1a.75.75 0 0 1 .75.75v3.5a.75.75 0 0 1-1.5 0V2.5h-1v.75a.75.75 0 0 1-1.5 0V1.75a.75.75 0 0 1 .75-.75h1.5zM11.75 6a.75.75 0 0 1 .75.75v3.5a.75.75 0 0 1-1.5 0V7.5h-1v.75a.75.75 0 0 1-1.5 0V6.75a.75.75 0 0 1 .75-.75h1.5zM11.75 11a.75.75 0 0 1 .75.75v3.5a.75.75 0 0 1-1.5 0v-2.5h-1v.75a.75.75 0 0 1-1.5 0v-.75a.75.75 0 0 1 .75-.75h1.5z"/></svg>
+                Analytics
+            </div>
+            <div class="nav-item" onclick="switchPage('api')">
+                <svg fill="currentColor" viewBox="0 0 16 16"><path d="M0 2.75C0 1.784.784 1 1.75 1h12.5c.966 0 1.75.784 1.75 1.75v10.5A1.75 1.75 0 0 1 14.25 15H1.75A1.75 1.75 0 0 1 0 13.25V2.75zm1.75-.25a.25.25 0 0 0-.25.25v10.5c0 .138.112.25.25.25h12.5a.25.25 0 0 0 .25-.25V2.75a.25.25 0 0 0-.25-.25H1.75zM7.25 4a.75.75 0 0 0-.75.75v.428c0 .414.336.75.75.75h.428a.75.75 0 0 0 .75-.75V4.75A.75.75 0 0 0 7.678 4H7.25zm0 2.5a.75.75 0 0 0-.75.75v.428c0 .414.336.75.75.75h.428a.75.75 0 0 0 .75-.75V7.25a.75.75 0 0 0-.75-.75h-.428zm0 2.5a.75.75 0 0 0-.75.75v.428c0 .414.336.75.75.75h.428a.75.75 0 0 0 .75-.75v-.428a.75.75 0 0 0-.75-.75h-.428zm0 2.5a.75.75 0 0 0-.75.75v.428c0 .414.336.75.75.75h.428a.75.75 0 0 0 .75-.75v-.428a.75.75 0 0 0-.75-.75h-.428z"/></svg>
+                API Keys
+            </div>
+            <div class="nav-item" onclick="switchPage('windows-events')">
+                <svg fill="currentColor" viewBox="0 0 16 16"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0 0 16 8c0-4.42-3.58-8-8-8z"/></svg>
+                Windows Events
+            </div>
+            <div class="nav-item" onclick="switchPage('playbook')">
+                <svg fill="currentColor" viewBox="0 0 16 16"><path d="M1.75 2A1.75 1.75 0 0 0 0 3.75v.736a.75.75 0 0 0 0 .027v7.737C0 13.216.784 14 1.75 14h12.5A1.75 1.75 0 0 0 16 12.25v-8.5A1.75 1.75 0 0 0 14.25 2H1.75zM14.5 4.07v-.32a.25.25 0 0 0-.25-.25H1.75a.25.25 0 0 0-.25.25v.32L8 7.88l6.5-4.81zm-13 1.74v6.441c0 .138.112.25.25.25h12.5a.25.25 0 0 0 .25-.25V5.809L8.38 9.397a.75.75 0 0 1-.76 0L1.5 5.809z"/></svg>
+                Playbook
+            </div>
+        </div>
+        <div class="sidebar-footer">
+            <span class="status-indicator"></span>
+            System Online
+        </div>
+    </div>
+
+    <div class="main">
+        <div id="dashboard" class="page active">
+            <div class="page-header">
+                <h1 class="page-title">Dashboard</h1>
+                <p class="page-subtitle">Overview of security operations</p>
+            </div>
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-label">Total Logs</div>
+                    <div class="stat-value" id="metric-logs">0</div>
+                    <div class="stat-caption">Last 24 hours</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">Active Alerts</div>
+                    <div class="stat-value" id="metric-alerts">0</div>
+                    <div class="stat-caption">Unresolved</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">Open Incidents</div>
+                    <div class="stat-value" id="metric-incidents">0</div>
+                    <div class="stat-caption">In progress</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">Scans Performed</div>
+                    <div class="stat-value" id="metric-scans">0</div>
+                    <div class="stat-caption">Total</div>
+                </div>
+            </div>
+            <div class="layout-2col">
+                <div class="card">
+                    <div class="card-header">
+                        <h3 class="card-title">Live Activity Feed</h3>
+                        <button class="btn" onclick="clearFeed()">Clear</button>
+                    </div>
+                    <div class="activity-feed" id="live-feed"></div>
+                </div>
+                <div class="card">
+                    <div class="card-header">
+                        <h3 class="card-title">Threat Gauge</h3>
+                    </div>
+                    <div class="gauge-container">
+                        <canvas id="threat-gauge" class="gauge-canvas"></canvas>
+                        <div class="gauge-value" id="threat-score">0/15</div>
+                        <div class="gauge-label">Average Threat Score</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div id="logs" class="page">
+            <div class="page-header">
+                <h1 class="page-title">System Logs</h1>
+                <p class="page-subtitle">Recent activity and events</p>
+            </div>
+            <div style="margin-bottom:16px; display:flex; align-items:center;">
+                <input id="log-search-query" placeholder="Search message..." style="padding:8px; border:1px solid var(--border); border-radius:6px; background:var(--bg-card); color:var(--text-main); width:300px; margin-right:8px;">
+                <select id="log-search-severity" style="padding:8px; border:1px solid var(--border); border-radius:6px; background:var(--bg-card); color:var(--text-main); margin-right:8px;">
+                    <option value="">All Severities</option>
+                    <option value="info">Info</option>
+                    <option value="medium">Medium</option>
+                    <option value="high">High</option>
+                    <option value="critical">Critical</option>
+                </select>
+                <button class="btn btn-primary" onclick="performLogSearch()">Search</button>
+            </div>
+            <div class="card">
+                <table id="logs-table">
+                    <thead>
+                        <tr>
+                            <th>Timestamp</th>
+                            <th>Type</th>
+                            <th>Message</th>
+                            <th>Severity</th>
+                        </tr>
+                    </thead>
+                    <tbody></tbody>
+                </table>
+            </div>
+        </div>
+
+        <div id="alerts" class="page">
+            <div class="page-header">
+                <h1 class="page-title">Alerts</h1>
+                <p class="page-subtitle">Active security alerts</p>
+            </div>
+            <div style="margin-bottom:16px; display:flex; align-items:center;">
+                <select id="alert-search-severity" style="padding:8px; border:1px solid var(--border); border-radius:6px; background:var(--bg-card); color:var(--text-main); margin-right:8px;">
+                    <option value="">All Severities</option>
+                    <option value="low">Low</option>
+                    <option value="medium">Medium</option>
+                    <option value="high">High</option>
+                    <option value="critical">Critical</option>
+                </select>
+                <button class="btn btn-primary" onclick="performAlertSearch()">Filter</button>
+            </div>
+            <div id="alerts-container"></div>
+        </div>
+
+        <div id="incidents" class="page">
+            <div class="page-header">
+                <h1 class="page-title">Incidents</h1>
+                <p class="page-subtitle">Manage security incidents</p>
+            </div>
+            <button class="btn btn-primary" style="margin-bottom:16px;" onclick="createIncident()">Create Incident</button>
+            <div id="incidents-container"></div>
+        </div>
+
+        <div id="scanner" class="page">
+            <div class="page-header">
+                <h1 class="page-title">File Scanner</h1>
+                <p class="page-subtitle">Upload files for malware analysis</p>
+            </div>
+            <div class="card">
+                <div id="upload-zone" class="upload-area">
+                    <div class="upload-title">Drag & Drop Files Here</div>
+                    <div class="upload-hint">or click to select (max 1GB)</div>
+                    <input type="file" id="file-input" style="display:none;" multiple>
+                </div>
+                <div id="file-queue" class="file-queue"></div>
+                <div id="scan-results"></div>
+            </div>
+        </div>
+
+        <div id="analytics" class="page">
+            <div class="page-header">
+                <h1 class="page-title">Analytics</h1>
+                <p class="page-subtitle">Security metrics and trends</p>
+            </div>
+            <div class="layout-2col-even">
+                <div class="card">
+                    <div class="card-header">
+                        <h3 class="card-title">Threat Trends</h3>
+                    </div>
+                    <div class="chart-wrapper">
+                        <canvas id="trend-chart"></canvas>
+                    </div>
+                </div>
+                <div class="card">
+                    <div class="card-header">
+                        <h3 class="card-title">File Type Distribution</h3>
+                    </div>
+                    <div class="chart-wrapper">
+                        <canvas id="filetype-chart"></canvas>
+                    </div>
+                </div>
+            </div>
+            <div class="layout-2col-even">
+                <div class="card">
+                    <div class="card-header">
+                        <h3 class="card-title">Detection Rate</h3>
+                    </div>
+                    <div class="chart-wrapper">
+                        <canvas id="detection-chart"></canvas>
+                    </div>
+                </div>
+                <div class="card">
+                    <div class="card-header">
+                        <h3 class="card-title">Threat Categories</h3>
+                    </div>
+                    <div class="chart-wrapper">
+                        <canvas id="category-chart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div id="api" class="page">
+            <div class="page-header">
+                <h1 class="page-title">API Keys</h1>
+                <p class="page-subtitle">Manage API access</p>
+            </div>
+            <button class="btn btn-primary" style="margin-bottom:16px;" onclick="createApiKey()">Create Key</button>
+            <div id="api-keys-list" class="card"></div>
+        </div>
+
+        <div id="windows-events" class="page">
+            <div class="page-header">
+                <h1 class="page-title">Windows Events</h1>
+                <p class="page-subtitle">Recent Windows security events</p>
+            </div>
+            <div class="card">
+                <button class="btn btn-primary" onclick="fetchWindowsEvents()">Fetch Events</button>
+                <div id="win-events-results" style="margin-top:16px;"></div>
+            </div>
+        </div>
+
+        <div id="playbook" class="page">
+            <div class="page-header">
+                <h1 class="page-title">SOC Playbook</h1>
+                <p class="page-subtitle">Standard operating procedures</p>
+            </div>
+            <div class="card">
+                <iframe src="/playbook" style="width:100%; height:700px; border:none;"></iframe>
+            </div>
+        </div>
+    </div>
+
+    <script src="/static/js/main.js"></script>
+    <script src="/static/js/charts.js"></script>
+</body>
+</html>
+        

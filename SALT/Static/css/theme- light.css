@@ -1,0 +1,107 @@
+/* SALT SIEM - Light Theme */
+
+:root[data-theme="light"] {
+    --bg-main: #ffffff;
+    --bg-side: #f6f8fa;
+    --bg-card: #ffffff;
+    --bg-hover: #f3f4f6;
+    --text-main: #24292f;
+    --text-dim: #57606a;
+    --accent: #0969da;
+    --border: #d0d7de;
+    --danger: #cf222e;
+    --warning: #9a6700;
+    --success: #1a7f37;
+    --shadow: 0 1px 3px rgba(0, 0, 0, 0.12);
+}
+
+/* Override specific elements for light theme */
+:root[data-theme="light"] .stat-value {
+    color: var(--accent);
+}
+
+:root[data-theme="light"] .gauge-value {
+    color: var(--accent);
+}
+
+:root[data-theme="light"] .feed-item {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+}
+
+:root[data-theme="light"] .file-item {
+    background: var(--bg-card);
+}
+
+:root[data-theme="light"] .nav-item.active {
+    background: var(--accent);
+    color: #ffffff;
+}
+
+:root[data-theme="light"] .btn-primary {
+    background: var(--accent);
+    color: #ffffff;
+}
+
+:root[data-theme="light"] .btn-primary:hover {
+    background: #0860ca;
+}
+
+/* Light theme badge adjustments */
+:root[data-theme="light"] .badge-critical {
+    background: #ffebe9;
+    color: var(--danger);
+}
+
+:root[data-theme="light"] .badge-high {
+    background: #fff8dc;
+    color: var(--warning);
+}
+
+:root[data-theme="light"] .badge-medium {
+    background: #ddf4ff;
+    color: var(--accent);
+}
+
+:root[data-theme="light"] .badge-low {
+    background: #dafbe1;
+    color: var(--success);
+}
+
+/* Scrollbar for light theme */
+:root[data-theme="light"] ::-webkit-scrollbar-track {
+    background: var(--bg-hover);
+}
+
+:root[data-theme="light"] ::-webkit-scrollbar-thumb {
+    background: var(--border);
+}
+
+:root[data-theme="light"] ::-webkit-scrollbar-thumb:hover {
+    background: var(--text-dim);
+}
+
+/* Chart adjustments for light theme */
+:root[data-theme="light"] canvas {
+    filter: brightness(0.95);
+}
+
+/* Upload area in light theme */
+:root[data-theme="light"] .upload-area {
+    background: var(--bg-hover);
+}
+
+:root[data-theme="light"] .upload-area:hover {
+    background: var(--bg-card);
+    border-color: var(--accent);
+}
+
+/* Progress bar in light theme */
+:root[data-theme="light"] .progress-bar {
+    background: var(--bg-hover);
+}
+
+/* Status indicator glow effect */
+:root[data-theme="light"] .status-indicator {
+    box-shadow: 0 0 4px var(--success);
+}

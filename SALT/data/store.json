@@ -1,0 +1,149 @@
+{
+  "logs": [
+    {
+      "type": "system_start",
+      "message": "SALT SIEM v3.0 started with enhanced features",
+      "severity": "Info",
+      "id": 1,
+      "timestamp": "2026-01-03T19:49:25.052658"
+    },
+    {
+      "type": "system_start",
+      "message": "SALT SIEM v3.0 started with enhanced features",
+      "severity": "Info",
+      "id": 2,
+      "timestamp": "2026-01-03T19:49:37.630598"
+    },
+    {
+      "type": "system_start",
+      "message": "SALT SIEM v3.0 started with enhanced features",
+      "severity": "Info",
+      "id": 3,
+      "timestamp": "2026-01-03T20:10:15.004588"
+    },
+    {
+      "type": "system_start",
+      "message": "SALT SIEM v3.0 started with enhanced features",
+      "severity": "Info",
+      "id": 4,
+      "timestamp": "2026-01-03T20:10:25.352254"
+    },
+    {
+      "type": "system_start",
+      "message": "SALT SIEM v3.0 started with enhanced features",
+      "severity": "Info",
+      "id": 5,
+      "timestamp": "2026-01-03T20:53:48.706648"
+    },
+    {
+      "type": "system_start",
+      "message": "SALT SIEM v3.0 started with enhanced features",
+      "severity": "Info",
+      "id": 6,
+      "timestamp": "2026-01-03T20:53:51.874194"
+    },
+    {
+      "type": "system_start",
+      "message": "SALT SIEM v3.0 started with enhanced features",
+      "severity": "Info",
+      "id": 7,
+      "timestamp": "2026-01-03T20:54:59.625647"
+    },
+    {
+      "type": "system_start",
+      "message": "SALT SIEM v3.0 started with enhanced features",
+      "severity": "Info",
+      "id": 8,
+      "timestamp": "2026-01-03T21:04:34.472796"
+    },
+    {
+      "type": "system_start",
+      "message": "SALT SIEM v3.0 started with enhanced features",
+      "severity": "Info",
+      "id": 9,
+      "timestamp": "2026-01-03T21:04:37.192102"
+    },
+    {
+      "type": "file_upload",
+      "message": "File uploaded: UnityHubSetup-x64.exe",
+      "severity": "Info",
+      "id": 10,
+      "timestamp": "2026-01-03T21:05:58.086836"
+    },
+    {
+      "type": "file_upload",
+      "message": "File uploaded: SOC_Home_lab_Report.pdf",
+      "severity": "Info",
+      "id": 11,
+      "timestamp": "2026-01-03T21:07:55.930173"
+    },
+    {
+      "type": "file_upload",
+      "message": "File uploaded: utorrent_installer.exe",
+      "severity": "Info",
+      "id": 12,
+      "timestamp": "2026-01-03T21:08:36.009618"
+    },
+    {
+      "type": "file_upload",
+      "message": "File uploaded: wp14309093-tyler-the-creator-laptop-wallpapers.jpg",
+      "severity": "Info",
+      "id": 13,
+      "timestamp": "2026-01-03T21:08:55.213114"
+    },
+    {
+      "type": "file_upload",
+      "message": "File uploaded: How_to_Choose_the_Right_University_in_Germany.mp4",
+      "severity": "Info",
+      "id": 14,
+      "timestamp": "2026-01-03T21:11:22.246180"
+    },
+    {
+      "type": "file_upload",
+      "message": "File uploaded: Docker_Desktop_Installer.exe",
+      "severity": "Info",
+      "id": 15,
+      "timestamp": "2026-01-03T21:12:56.199961"
+    }
+  ],
+  "alerts": [],
+  "incidents": [],
+  "scans": [
+    {
+      "filename": "SOC_Home_lab_Report.pdf",
+      "threat_level": "Low",
+      "threat_score": 0,
+      "sha256": "7880c08757b2ebcfa46e2140fadd95e7e1c0aed514abcfcfd28d715dd5c7356b",
+      "md5": "13abe144a1bcbe67c6af1bc0289b7b31",
+      "yara_matches": 0,
+      "report": "=== ZONE SANDBOX ANALYSIS ===\nSHA256: 7880c08757b2ebcfa46e2140fadd95e7e1c0aed514abcfcfd28d715dd5c7356b\nMD5: 13abe144a1bcbe67c6af1bc0289b7b31\nPE analysis error: 'DOS Header magic not found.'\nThreat Level: Low\nThreat Score: 0/15",
+      "virustotal": null,
+      "id": 1,
+      "timestamp": "2026-01-03T21:07:56.157851"
+    },
+    {
+      "filename": "wp14309093-tyler-the-creator-laptop-wallpapers.jpg",
+      "threat_level": "Low",
+      "threat_score": 0,
+      "sha256": "2d6b981017e9c1513aeacd6441c4b727adbd14fa32a5c34fcf6e6d0d167814c4",
+      "md5": "fc4eb8b11ef98ffdb1151c9b238aaa7b",
+      "yara_matches": 0,
+      "report": "=== ZONE SANDBOX ANALYSIS ===\nSHA256: 2d6b981017e9c1513aeacd6441c4b727adbd14fa32a5c34fcf6e6d0d167814c4\nMD5: fc4eb8b11ef98ffdb1151c9b238aaa7b\nPE analysis error: 'DOS Header magic not found.'\nThreat Level: Low\nThreat Score: 0/15",
+      "virustotal": null,
+      "id": 2,
+      "timestamp": "2026-01-03T21:08:55.367427"
+    },
+    {
+      "filename": "How_to_Choose_the_Right_University_in_Germany.mp4",
+      "threat_level": "Low",
+      "threat_score": 0,
+      "sha256": "7245bda096c13cfc1d59c21fe424e866825391b46a2e5fa2fb9781fdbcfc8af4",
+      "md5": "b6b8315a03bedd7d27b5ce55a1a60024",
+      "yara_matches": 0,
+      "report": "=== ZONE SANDBOX ANALYSIS ===\nSHA256: 7245bda096c13cfc1d59c21fe424e866825391b46a2e5fa2fb9781fdbcfc8af4\nMD5: b6b8315a03bedd7d27b5ce55a1a60024\nPE analysis error: 'DOS Header magic not found.'\nThreat Level: Low\nThreat Score: 0/15",
+      "virustotal": null,
+      "id": 3,
+      "timestamp": "2026-01-03T21:11:31.366544"
+    }
+  ]
+}

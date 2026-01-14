@@ -1,0 +1,403 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SALT SOC Playbook</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root[data-theme="dark"] {
+            --bg: #0d1117;
+            --bg-card: #161b22;
+            --text: #c9d1d9;
+            --text-dim: #8b949e;
+            --accent: #58a6ff;
+            --border: #30363d;
+            --danger: #f85149;
+            --warning: #d29922;
+            --success: #3fb950;
+        }
+
+        :root[data-theme="light"] {
+            --bg: #ffffff;
+            --bg-card: #f6f8fa;
+            --text: #24292f;
+            --text-dim: #57606a;
+            --accent: #0969da;
+            --border: #d0d7de;
+            --danger: #cf222e;
+            --warning: #9a6700;
+            --success: #1a7f37;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            padding: 32px;
+            line-height: 1.6;
+            font-size: 14px;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+        }
+
+        h1 {
+            font-size: 28px;
+            font-weight: 600;
+            margin-bottom: 8px;
+            color: var(--text);
+            border-bottom: 2px solid var(--accent);
+            padding-bottom: 8px;
+        }
+
+        h2 {
+            font-size: 20px;
+            font-weight: 600;
+            margin-top: 32px;
+            margin-bottom: 16px;
+            color: var(--text);
+        }
+
+        h3 {
+            font-size: 16px;
+            font-weight: 600;
+            margin-top: 20px;
+            margin-bottom: 12px;
+            color: var(--accent);
+        }
+
+        .section {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            padding: 20px;
+            margin: 20px 0;
+        }
+
+        .version {
+            font-size: 12px;
+            color: var(--text-dim);
+            margin-bottom: 24px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 16px 0;
+        }
+
+        th {
+            background: var(--bg-card);
+            padding: 10px;
+            text-align: left;
+            font-size: 12px;
+            font-weight: 600;
+            border-bottom: 2px solid var(--border);
+            color: var(--text-dim);
+        }
+
+        td {
+            padding: 10px;
+            border-bottom: 1px solid var(--border);
+            font-size: 13px;
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-size: 11px;
+            font-weight: 500;
+        }
+
+        .badge-critical { background: rgba(248, 81, 73, 0.15); color: var(--danger); }
+        .badge-high { background: rgba(210, 153, 34, 0.15); color: var(--warning); }
+        .badge-medium { background: rgba(88, 166, 255, 0.15); color: var(--accent); }
+        .badge-low { background: rgba(63, 185, 80, 0.15); color: var(--success); }
+
+        ol, ul {
+            margin-left: 24px;
+            margin-bottom: 16px;
+        }
+
+        li {
+            margin: 8px 0;
+        }
+
+        code {
+            background: var(--bg-card);
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-family: 'Courier New', monospace;
+            font-size: 12px;
+            color: var(--accent);
+        }
+
+        .alert-box {
+            background: rgba(248, 81, 73, 0.1);
+            border: 1px solid var(--danger);
+            border-left: 3px solid var(--danger);
+            padding: 16px;
+            border-radius: 6px;
+            margin: 16px 0;
+        }
+
+        .step {
+            background: var(--bg-card);
+            padding: 12px;
+            margin: 10px 0;
+            border-left: 3px solid var(--accent);
+            border-radius: 4px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>SALT SIEM - SOC Playbook</h1>
+        <p class="version">Version 3.0 • Updated January 2025</p>
+
+        <div class="section">
+            <h2>1. Incident Classification</h2>
+            <table>
+                <tr>
+                    <th>Level</th>
+                    <th>Score</th>
+                    <th>Response Time</th>
+                    <th>Action Required</th>
+                </tr>
+                <tr>
+                    <td><span class="badge badge-low">LOW</span></td>
+                    <td>0-2 points</td>
+                    <td>24-48 hours</td>
+                    <td>Monitor and log</td>
+                </tr>
+                <tr>
+                    <td><span class="badge badge-medium">MEDIUM</span></td>
+                    <td>3-5 points</td>
+                    <td>4-8 hours</td>
+                    <td>Investigate further</td>
+                </tr>
+                <tr>
+                    <td><span class="badge badge-high">HIGH</span></td>
+                    <td>6-9 points</td>
+                    <td>1 hour</td>
+                    <td>Quarantine and investigate</td>
+                </tr>
+                <tr>
+                    <td><span class="badge badge-critical">CRITICAL</span></td>
+                    <td>10+ points</td>
+                    <td>Immediate</td>
+                    <td>Full incident response</td>
+                </tr>
+            </table>
+        </div>
+
+        <div class="section">
+            <h2>2. Malware Detection Response</h2>
+            
+            <h3>Phase 1: Assessment (0-5 Minutes)</h3>
+            <ol>
+                <li>Review Zone Sandbox report</li>
+                <li>Check threat score and YARA matches</li>
+                <li>Note file hashes (SHA256, MD5)</li>
+                <li>Identify file source and affected systems</li>
+            </ol>
+
+            <h3>Phase 2: Containment (5-15 Minutes)</h3>
+            <div class="alert-box">
+                <strong>CRITICAL:</strong> Do not delete files immediately - preserve evidence
+            </div>
+            <ol>
+                <li>Isolate affected systems from network</li>
+                <li>Block file hash at security controls</li>
+                <li>Quarantine suspicious files</li>
+                <li>Create incident ticket in SALT</li>
+            </ol>
+
+            <h3>Phase 3: Investigation (15-60 Minutes)</h3>
+            <ol>
+                <li>Search SHA256 on threat databases</li>
+                <li>Check for lateral movement indicators</li>
+                <li>Review authentication logs</li>
+                <li>Scan connected systems</li>
+            </ol>
+
+            <h3>Phase 4: Eradication</h3>
+            <ol>
+                <li>Remove malware from affected systems</li>
+                <li>Check registry keys and startup locations</li>
+                <li>Review scheduled tasks</li>
+                <li>Patch exploited vulnerabilities</li>
+            </ol>
+
+            <h3>Phase 5: Recovery</h3>
+            <ol>
+                <li>Restore from clean backups if needed</li>
+                <li>Reset compromised credentials</li>
+                <li>Reconnect systems with monitoring</li>
+                <li>Monitor for 72 hours post-incident</li>
+            </ol>
+        </div>
+
+        <div class="section">
+            <h2>3. YARA Rule Interpretation</h2>
+            <table>
+                <tr>
+                    <th>Rule</th>
+                    <th>Indicates</th>
+                    <th>Severity</th>
+                </tr>
+                <tr>
+                    <td>Suspicious_APIs</td>
+                    <td>Process injection, memory manipulation</td>
+                    <td><span class="badge badge-high">HIGH</span></td>
+                </tr>
+                <tr>
+                    <td>Ransomware_Advanced</td>
+                    <td>Encryption APIs, shadow deletion</td>
+                    <td><span class="badge badge-critical">CRITICAL</span></td>
+                </tr>
+                <tr>
+                    <td>Keylogger_Indicators</td>
+                    <td>Keystroke logging capability</td>
+                    <td><span class="badge badge-high">HIGH</span></td>
+                </tr>
+                <tr>
+                    <td>Credential_Stealer</td>
+                    <td>Password theft, mimikatz</td>
+                    <td><span class="badge badge-critical">CRITICAL</span></td>
+                </tr>
+                <tr>
+                    <td>Persistence_Mechanism</td>
+                    <td>Autostart, scheduled tasks</td>
+                    <td><span class="badge badge-high">HIGH</span></td>
+                </tr>
+            </table>
+        </div>
+
+        <div class="section">
+            <h2>4. Threat Scoring Guide</h2>
+            <p>SALT calculates threat scores based on YARA matches:</p>
+            <ul>
+                <li><strong>Critical match:</strong> +5 points</li>
+                <li><strong>High match:</strong> +3 points</li>
+                <li><strong>Medium match:</strong> +2 points</li>
+                <li><strong>Low match:</strong> +1 point</li>
+                <li><strong>High entropy section (>7.0):</strong> +2 points</li>
+            </ul>
+            <p><strong>Example:</strong> File with Ransomware_Advanced (5) + Suspicious_APIs (3) + High entropy (2) = 10 points = CRITICAL</p>
+        </div>
+
+        <div class="section">
+            <h2>5. Escalation Procedures</h2>
+            <h3>When to Escalate</h3>
+            <ul>
+                <li>CRITICAL threat level detected</li>
+                <li>Multiple systems compromised</li>
+                <li>Data exfiltration suspected</li>
+                <li>Ransomware confirmed</li>
+                <li>Incident not contained within 2 hours</li>
+            </ul>
+
+            <h3>Contact Matrix</h3>
+            <table>
+                <tr>
+                    <th>Role</th>
+                    <th>When to Contact</th>
+                    <th>Response Time</th>
+                </tr>
+                <tr>
+                    <td>SOC Analyst L1</td>
+                    <td>Initial triage</td>
+                    <td>Immediate</td>
+                </tr>
+                <tr>
+                    <td>SOC Manager</td>
+                    <td>HIGH/CRITICAL incidents</td>
+                    <td>30 minutes</td>
+                </tr>
+                <tr>
+                    <td>IT Management</td>
+                    <td>Business impact decisions</td>
+                    <td>2 hours</td>
+                </tr>
+                <tr>
+                    <td>Legal/Compliance</td>
+                    <td>Data breach, PII exposure</td>
+                    <td>4 hours</td>
+                </tr>
+            </table>
+        </div>
+
+        <div class="section">
+            <h2>6. Using SALT Tools</h2>
+            
+            <h3>Zone Sandbox</h3>
+            <ol>
+                <li>Navigate to Zone Sandbox tab</li>
+                <li>Upload suspicious file (drag & drop or click)</li>
+                <li>Review scan results (hashes, threat score, YARA matches)</li>
+                <li>Copy SHA256 for threat intelligence lookup</li>
+            </ol>
+
+            <h3>Creating Incidents</h3>
+            <ol>
+                <li>Go to Incidents tab</li>
+                <li>Click "Create Incident"</li>
+                <li>Fill in: Title, Description, Severity, Assigned To</li>
+                <li>Update status as investigation progresses</li>
+            </ol>
+
+            <h3>Reviewing Logs</h3>
+            <ol>
+                <li>Access Logs tab for all system events</li>
+                <li>Filter by time range, type, or severity</li>
+                <li>Look for patterns and correlations</li>
+                <li>Export for reporting if needed</li>
+            </ol>
+        </div>
+
+        <div class="section">
+            <h2>7. Prevention Best Practices</h2>
+            <ul>
+                <li>Keep YARA rules updated monthly</li>
+                <li>Schedule periodic scans of critical directories</li>
+                <li>Train users on phishing awareness</li>
+                <li>Block executable attachments in email</li>
+                <li>Implement application whitelisting</li>
+                <li>Maintain regular backup schedules</li>
+                <li>Keep systems patched and updated</li>
+            </ul>
+        </div>
+
+        <div class="section">
+            <h2>8. Incident Report Template</h2>
+            <div class="step">
+                <strong>Incident ID:</strong> SALT_INC_[AUTO]<br>
+                <strong>Severity:</strong> [Low/Medium/High/Critical]<br>
+                <strong>Detection Time:</strong> [Timestamp]<br>
+                <strong>File:</strong> [Filename]<br>
+                <strong>Hash:</strong> [SHA256]<br>
+                <strong>Threat Score:</strong> [X]/15<br>
+                <strong>YARA Matches:</strong> [List rules]<br>
+                <strong>Affected Systems:</strong> [Hostnames/IPs]<br>
+                <strong>Actions Taken:</strong> [List actions]<br>
+                <strong>Status:</strong> [Open/In Progress/Resolved]<br>
+                <strong>Analyst:</strong> [Name]
+            </div>
+        </div>
+
+        <p style="text-align: center; margin-top: 40px; color: var(--text-dim); font-size: 12px;">
+            SALT SIEM v3.0 • SOC Playbook • Confidential - Authorized Personnel Only
+        </p>
+    </div>
+</body>
+</html>
