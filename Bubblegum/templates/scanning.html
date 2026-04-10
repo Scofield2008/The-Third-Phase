@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Scanning — APKGuard</title>
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+<div class="noise"></div>
+<div class="grid-overlay"></div>
+
+<div class="scan-page">
+  <div class="scan-card">
+    <div class="logo scan-logo">
+      <div class="logo-mark spinning-logo">
+        <svg width="22" height="22" viewBox="0 0 22 22" fill="none">
+          <polygon points="11,1 21,6 21,16 11,21 1,16 1,6" stroke="#00ffcc" stroke-width="1.5" fill="none"/>
+          <polygon points="11,5 17,8.5 17,15.5 11,19 5,15.5 5,8.5" fill="#00ffcc" fill-opacity="0.15" stroke="#00ffcc" stroke-width="1"/>
+          <circle cx="11" cy="11" r="2.5" fill="#00ffcc"/>
+        </svg>
+      </div>
+      <span class="logo-text">APKGuard</span>
+    </div>
+
+    <div class="scan-file-info">
+      <div class="scan-filename">{{ filename }}</div>
+      <div class="scan-filesize">{{ size_mb }}MB</div>
+    </div>
+
+    <div class="scan-status-label">SCANNING IN PROGRESS</div>
+
+    <div class="scan-progress-bar">
+      <div class="spb-track">
+        <div class="spb-fill" id="spb-fill"></div>
+      </div>
+    </div>
+
+    <div class="scan-live-msg" id="live-msg">Initialising scanner...</div>
+
+    <div class="scan-log" id="scan-log">
+      <div class="log-line log-dim">Waiting for scanner to start...</div>
+    </div>
+
+    <div class="scan-note">
+      Large APKs (100MB+) typically take 1–5 minutes.<br>
+      Do not close this tab.
+    </div>
+  </div>
+</div>
+
+<script>
+  const jobId   = "{{ job_id }}";
+  const logEl   = document.getElementById('scan-log');
+  const msgEl   = document.getElementById('live-msg');
+  const fillEl  = document.getElementById('spb-fill');
+  const loggedMsgs = new Set();
+  let pollCount = 0;
+
+  const STAGE_WEIGHTS = {
+    "Parsing AndroidManifest": 5,
+    "Analysing permissions":   15,
+    "Loading DEX":             25,
+    "Parsing classes":         50,
+    "Extracting strings":      65,
+    "Scanning":                75,
+    "Extracting network":      82,
+    "Scanning class names":    88,
+    "Calculating":             95,
+    "Done":                    100,
+    "Scan complete":           100,
+  };
+
+  function guessProgress(msg) {
+    for (const [key, val] of Object.entries(STAGE_WEIGHTS)) {
+      if (msg.includes(key)) return val;
+    }
+    return null;
+  }
+
+  function addLog(msg) {
+    if (loggedMsgs.has(msg)) return;
+    loggedMsgs.add(msg);
+    const div = document.createElement('div');
+    div.className = 'log-line';
+    const ts = new Date().toLocaleTimeString('en', {hour12: false});
+    div.innerHTML = `<span class="log-ts">${ts}</span><span class="log-msg">${msg}</span>`;
+    logEl.appendChild(div);
+    logEl.scrollTop = logEl.scrollHeight;
+  }
+
+  let currentProgress = 2;
+  function setProgress(p) {
+    if (p > currentProgress) {
+      currentProgress = p;
+      fillEl.style.width = p + '%';
+    }
+  }
+
+  setProgress(2);
+
+  function poll() {
+    fetch(`/status/${jobId}`)
+      .then(r => r.json())
+      .then(data => {
+        pollCount++;
+        const msg = data.progress || '';
+
+        if (msg) {
+          msgEl.textContent = msg;
+          addLog(msg);
+          const p = guessProgress(msg);
+          if (p) setProgress(p);
+          else setProgress(Math.min(currentProgress + 0.5, 92));
+        }
+
+        if (data.status === 'done') {
+          setProgress(100);
+          msgEl.textContent = 'Scan complete! Redirecting...';
+          addLog('✓ Scan complete');
+          setTimeout(() => window.location.href = `/results/${jobId}`, 800);
+          return;
+        }
+
+        if (data.status === 'error') {
+          msgEl.textContent = 'Scan failed: ' + (data.error || 'Unknown error');
+          msgEl.style.color = 'var(--red)';
+          addLog('✕ Error: ' + data.error);
+          return;
+        }
+
+        // Keep polling
+        const delay = pollCount < 10 ? 1000 : pollCount < 30 ? 2000 : 3000;
+        setTimeout(poll, delay);
+      })
+      .catch(() => setTimeout(poll, 2000));
+  }
+
+  setTimeout(poll, 1200);
+</script>
+</body>
+</html>
