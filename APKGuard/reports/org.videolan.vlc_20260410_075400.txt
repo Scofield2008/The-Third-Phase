@@ -1,0 +1,35 @@
+APKGuard Privacy Scan Report
+Generated  : 2026-04-10 07:54:00.077294
+App        : VLC (org.videolan.vlc)
+Version    : 1.7.5
+File Size  : 14.6MB
+Risk Score : 5 — LOW
+DEX files  : 1
+Strings    : 29,047
+Classes    : 3,004
+
+══════════════════════════════════════════════════
+
+DANGEROUS PERMISSIONS:
+  [!] WRITE_EXTERNAL_STORAGE
+      Write files to device storage
+      OWASP: M2: Insecure Data Storage
+
+SUSPICIOUS PERMISSIONS:
+  [~] RECEIVE_BOOT_COMPLETED
+      Starts automatically at device boot
+
+HARDCODED SECRETS:
+
+TRACKER SDKs:
+
+SUSPICIOUS URLs:
+  [U] http://people.videolan.org/~magsoft/vlc-android_crashes/upload_crash_log.php
+
+HARDCODED IPs:
+
+NORMAL PERMISSIONS:
+  [ ] android.permission.WAKE_LOCK
+  [ ] android.permission.MODIFY_AUDIO_SETTINGS
+  [ ] android.permission.ACCESS_NETWORK_STATE
+  [ ] android.permission.INTERNET

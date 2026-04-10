@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>APKGuard — Android Privacy Scanner</title>
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+<div class="noise"></div>
+<div class="grid-overlay"></div>
+
+<div class="layout">
+
+  <!-- ── LEFT SIDEBAR ── -->
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+      <div class="logo">
+        <div class="logo-mark">
+          <svg width="22" height="22" viewBox="0 0 22 22" fill="none">
+            <polygon points="11,1 21,6 21,16 11,21 1,16 1,6" stroke="#00ffcc" stroke-width="1.5" fill="none"/>
+            <polygon points="11,5 17,8.5 17,15.5 11,19 5,15.5 5,8.5" fill="#00ffcc" fill-opacity="0.15" stroke="#00ffcc" stroke-width="1"/>
+            <circle cx="11" cy="11" r="2.5" fill="#00ffcc"/>
+          </svg>
+        </div>
+        <span class="logo-text">APKGuard</span>
+      </div>
+
+      <div class="sidebar-hero">
+        <h1>Android<br>Privacy<br><em>Scanner</em></h1>
+        <p>Static analysis tool for Android APK files. Detects privacy violations, exposed secrets, and tracker SDKs before they reach your users.</p>
+      </div>
+
+      <div class="capability-list">
+        <div class="cap-row">
+          <span class="cap-icon danger-icon">⚠</span>
+          <div>
+            <div class="cap-title">Dangerous Permissions</div>
+            <div class="cap-desc">Camera, mic, location, contacts & more</div>
+          </div>
+        </div>
+        <div class="cap-row">
+          <span class="cap-icon key-icon">⬡</span>
+          <div>
+            <div class="cap-title">Hardcoded Secrets</div>
+            <div class="cap-desc">API keys, tokens, AWS credentials</div>
+          </div>
+        </div>
+        <div class="cap-row">
+          <span class="cap-icon tracker-icon">◈</span>
+          <div>
+            <div class="cap-title">Tracker SDKs</div>
+            <div class="cap-desc">Facebook Ads, Firebase, AppsFlyer & 40+</div>
+          </div>
+        </div>
+        <div class="cap-row">
+          <span class="cap-icon url-icon">⬡</span>
+          <div>
+            <div class="cap-title">Network Endpoints</div>
+            <div class="cap-desc">Hardcoded URLs and IP addresses</div>
+          </div>
+        </div>
+        <div class="cap-row">
+          <span class="cap-icon owasp-icon">◉</span>
+          <div>
+            <div class="cap-title">OWASP Mobile Top 10</div>
+            <div class="cap-desc">Every finding mapped to a standard</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="sidebar-footer">
+        <a href="/history" class="history-link">
+          <span>◷</span> Scan History
+        </a>
+        <div class="version-badge">v2.0 · Static Analysis</div>
+      </div>
+    </div>
+  </aside>
+
+  <!-- ── MAIN CONTENT ── -->
+  <main class="main">
+
+    <div class="main-inner">
+      <div class="page-label">PRIVACY AUDIT</div>
+      <h2 class="page-title">Upload APK to Scan</h2>
+      <p class="page-sub">Supports APKs up to 600MB. Large apps (TikTok, Instagram) may take 2–5 minutes.</p>
+
+      {% if error %}
+      <div class="error-banner">
+        <span class="error-x">✕</span>
+        <span>{{ error }}</span>
+      </div>
+      {% endif %}
+
+      <form action="/scan" method="POST" enctype="multipart/form-data" id="form">
+        <div class="drop-area" id="drop-area">
+          <input type="file" name="apk" accept=".apk" required id="file-in" class="file-hidden">
+          <div class="drop-icon-ring">
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+              <polyline points="17 8 12 3 7 8"/>
+              <line x1="12" y1="3" x2="12" y2="15"/>
+            </svg>
+          </div>
+          <div class="drop-text">
+            <span class="drop-main" id="drop-main">Drop APK here or click to browse</span>
+            <span class="drop-sub" id="drop-sub">All Android APK files accepted</span>
+          </div>
+          <div class="drop-formats">
+            <span class="fmt-tag">.apk</span>
+          </div>
+        </div>
+
+        <button type="submit" class="scan-btn" id="scan-btn">
+          <span class="scan-btn-label">Run Privacy Scan</span>
+          <span class="scan-arrow">→</span>
+        </button>
+      </form>
+
+      <!-- Terminal mockup -->
+      <div class="term-card">
+        <div class="term-header">
+          <div class="term-dots">
+            <span class="td red"></span>
+            <span class="td yellow"></span>
+            <span class="td green"></span>
+          </div>
+          <span class="term-name">apkguard · live output</span>
+        </div>
+        <div class="term-output">
+          <div class="tline"><span class="tc-green">$</span> apkguard scan tiktok.apk</div>
+          <div class="tline"><span class="tc-dim">Parsing AndroidManifest.xml...</span></div>
+          <div class="tline"><span class="tc-dim">Loading classes1.dex (1/8)...</span></div>
+          <div class="tline"><span class="tc-red">[!]</span> ACCESS_FINE_LOCATION → M6: Privacy Controls</div>
+          <div class="tline"><span class="tc-red">[!]</span> RECORD_AUDIO → M6: Privacy Controls</div>
+          <div class="tline"><span class="tc-yellow">[T]</span> com.facebook.ads → Facebook Audience Network</div>
+          <div class="tline"><span class="tc-yellow">[T]</span> com.appsflyer → AppsFlyer Attribution</div>
+          <div class="tline"><span class="tc-red">[!]</span> sk_live_xxxx → Stripe Live Key detected</div>
+          <div class="tline tline-result"><span class="tc-cyan">Risk Score: 34 — HIGH ██████████</span></div>
+        </div>
+      </div>
+
+    </div>
+  </main>
+
+</div>
+
+<script>
+  const input   = document.getElementById('file-in');
+  const area    = document.getElementById('drop-area');
+  const mainTxt = document.getElementById('drop-main');
+  const subTxt  = document.getElementById('drop-sub');
+  const form    = document.getElementById('form');
+  const btn     = document.getElementById('scan-btn');
+
+  function setFile(name, size) {
+    const mb = (size / 1024 / 1024).toFixed(1);
+    mainTxt.textContent = name;
+    subTxt.textContent  = `${mb} MB — ready to scan`;
+    area.classList.add('has-file');
+  }
+
+  input.addEventListener('change', () => {
+    if (input.files[0]) setFile(input.files[0].name, input.files[0].size);
+  });
+
+  area.addEventListener('dragover', e => { e.preventDefault(); area.classList.add('dragging'); });
+  area.addEventListener('dragleave', () => area.classList.remove('dragging'));
+  area.addEventListener('drop', e => {
+    e.preventDefault(); area.classList.remove('dragging');
+    const f = e.dataTransfer.files[0];
+    if (f && f.name.endsWith('.apk')) {
+      const dt = new DataTransfer(); dt.items.add(f); input.files = dt.files;
+      setFile(f.name, f.size);
+    }
+  });
+
+  form.addEventListener('submit', () => {
+    btn.innerHTML = '<span class="scan-btn-label">Uploading...</span><span class="spin">⟳</span>';
+    btn.disabled = true;
+  });
+</script>
+</body>
+</html>
